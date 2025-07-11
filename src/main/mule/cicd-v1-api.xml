@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+		<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="a6f4885a-fe4d-4371-a021-981a20a183a9" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="b89548a1-ade6-4855-8ca2-f7e8c320af58" file="properties/${env}.yaml" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="5ede3866-cb55-4d55-97ec-85d50063aa1b" file="properties/${env}.yaml" key="${key}" />
+	<global-property doc:name="Global Property" doc:id="31582e2f-703b-4132-8b82-9f5e7be3eb4d" name="env" value="${env}" />
+	<global-property doc:name="Global Property" doc:id="5916b655-ce57-47c9-8e20-1bd2f98610a1" name="key" value="${key}" />
+	<flow name="test-cicd-projectFlow" doc:id="b47912d1-003c-4afd-beeb-c1f405070fe6" >
+		<http:listener doc:name="Listener" doc:id="dc67a56c-6729-420e-9dda-1aa1b326e783" config-ref="HTTP_Listener_config" path="/api"/>
+		<ee:transform doc:name="Transform Message" doc:id="e1030c8d-1234-4bfe-818d-e0c7fde50caa" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": p("secure::encrypted.message"),
+	"date": (now() >> "IST" as TimeZone) as String {format: "yyyy-MMM-dd"},
+	"time": (now() >> "IST" as TimeZone) as String {format: "HH:mm:ss"}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="3e9054e3-dc82-475a-80f4-0431a7b87ae7" message="#[payload]"/>
+	</flow>
+</mule>
