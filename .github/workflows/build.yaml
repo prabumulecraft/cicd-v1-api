@@ -7,7 +7,7 @@ on:
     branches:
       - dev
       - qa
-      - master
+      - main
 
 jobs:
   Publish_to_Exchange:
@@ -27,7 +27,7 @@ jobs:
           BRANCH_NAME="${GITHUB_REF#refs/heads/}"
           echo "Branch name: $BRANCH_NAME"
 
-          if [ "$BRANCH_NAME" == "master" ]; then
+          if [ "$BRANCH_NAME" == "main" ]; then
             ENV_SUFFIX="prod"
           elif [ "$BRANCH_NAME" == "qa" ]; then
             ENV_SUFFIX="uat"
@@ -131,7 +131,7 @@ jobs:
             -Dkey="${{ vars.UAT_KEY }}"
 
   Deploy_to_PROD:
-    if: github.actor != 'github-actions[bot]' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'master'
+    if: github.actor != 'github-actions[bot]' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
     needs: Publish_to_Exchange
     runs-on: ubuntu-latest
     environment: prod
@@ -142,7 +142,7 @@ jobs:
           token: ${{ secrets.GIT_HUB_TOKEN }}
 
       - name: Pull latest committed version
-        run: git pull origin master
+        run: git pull origin main
 
       - name: Log deploying version
         run: |
